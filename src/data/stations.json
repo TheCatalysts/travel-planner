@@ -1,0 +1,34 @@
+[
+  {
+    "id": "st-2001",
+    "name": "Hainer See",
+    "country": "DE",
+    "stationId": "2001",
+    "latitude": 51.1720516966,
+    "longitude": 12.4615430832
+  },
+  {
+    "id": "st-2002",
+    "name": "Leipzig Central",
+    "country": "DE",
+    "stationId": "2002",
+    "latitude": 51.3396955,
+    "longitude": 12.3730747
+  },
+  {
+    "id": "st-2003",
+    "name": "Cape Town Intl",
+    "country": "ZA",
+    "stationId": "2003",
+    "latitude": -33.9695,
+    "longitude": 18.5975
+  },
+   {
+    "id": "st-2004",
+    "name": "Pretoria Central",
+    "country": "ZA",
+    "stationId": "2004",
+    "latitude": -33.9695,
+    "longitude": 18.5975
+  }
+]

@@ -1,0 +1,152 @@
+"""
+Root query type for the travel planner API.
+Provides access to weather data, station information, and activity recommendations.
+"""
+type Query {
+    """
+    Suggest stations/cities based on a query string.
+    Returns a paginated list of matching stations sorted by relevance.
+    """
+    suggestCities(
+        query: String!,
+        limit: Int = 8,
+        after: String
+    ): StationConnection!
+
+    """
+    Get current weather observations for a specific station.
+    Returns null if the station is not found or data is unavailable.
+    """
+    getWeather(
+        stationId: String!
+    ): WeatherResult
+
+    """
+    Rank activities for a given station based on current weather conditions.
+    Returns a sorted list of activities with their suitability scores.
+    """
+    rankActivities(
+        stationId: String!
+    ): [ActivityScore!]!
+}
+
+"""
+A connection type for paginated station results
+"""
+type StationConnection {
+    edges: [StationEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+}
+
+"""
+An edge in the station connection"
+"""
+type StationEdge {
+    node: Station!
+    cursor: String!
+}
+
+"""
+Information about the current page in a paginated result
+"""
+type PageInfo {
+    hasNextPage: Boolean!
+    endCursor: String
+}
+
+"""
+A weather station or city location
+"""
+type Station {
+    id: ID!
+    name: String!
+    country: String!
+    stationId: String!
+    latitude: Float!
+    longitude: Float!
+}
+
+"""
+Union type for weather query results
+"""
+union WeatherResult = Weather | WeatherError
+
+"""
+Current weather conditions at a station
+"""
+type Weather {
+    stationId: String!
+    name: String
+    timezone: String
+    temperature: Float
+    humidity: Float
+    windSpeed: Float
+    windDirection: Float
+    rainRate: Float
+    lastUpdated: String!
+}
+
+"""
+Error type for weather queries
+"""
+type WeatherError {
+    message: String!
+    code: WeatherErrorCode!
+}
+
+"""
+Possible error codes for weather queries
+"""
+enum WeatherErrorCode {
+    STATION_NOT_FOUND
+    DATA_UNAVAILABLE
+    RATE_LIMITED
+    INTERNAL_ERROR
+}
+
+"""
+Score and details for an activity's suitability
+"""
+type ActivityScore {
+    activity: Activity!
+    score: Int!
+    message: String
+}
+
+"""
+Available activities that can be ranked
+"""
+enum Activity {
+    SKIING
+    SURFING
+    INDOOR_SIGHTSEEING
+    OUTDOOR_SIGHTSEEING
+}
+
+"""
+Results from running integration tests
+"""
+type TestResult {
+    name: String!
+    ok: Boolean!
+    message: String
+    data: JSON
+}
+
+"""
+Custom scalar for arbitrary JSON data
+"""
+scalar JSON
+
+"""
+Root mutation type for modifying data
+"""
+type Mutation {
+    """
+    Run a set of integration checks on the server.
+    This mutation is only available in development mode.
+    """
+    runIntegrationChecks: [TestResult!]!
+}
+
