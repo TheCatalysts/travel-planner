@@ -4,17 +4,23 @@ A GraphQL-based travel planning API that provides city suggestions, weather data
 
 ## Quick Start
 
-1. **Install Dependencies**
+1. **Clone Repo**
+   ```bash
+   git clone https://github.com/TheCatalysts/travel-planner.git
+   cp .env.example .env
+   ```
+
+2. **Install Dependencies**
    ```bash
    npm install
    ```
 
-2. **Start Development Server**
+3. **Start Development Server**
    ```bash
    npm run dev
    ```
 
-3. **Run Tests**
+4. **Run Tests**
    ```bash
    npm test
    ```
