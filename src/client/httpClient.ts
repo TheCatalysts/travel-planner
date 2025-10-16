@@ -3,7 +3,6 @@ import axiosRetry from "axios-retry";
 import { logger } from "../utils/logger";
 
 export interface IHttpClient {
-  /** Returns parsed body or null when server responds 404 */
   get<T>(url: string): Promise<T | null>;
 }
 
