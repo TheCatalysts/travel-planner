@@ -19,8 +19,8 @@ describe('rankActivities', () => {
     };
     const ranked = rankActivities(weather);
     expect(ranked[0].activity).toBe(Activity.OutdoorSightseeing);
-    expect(ranked[0].score).toBeGreaterThan(80); // Good conditions should score high
-    expect(ranked[0].message).toBeTruthy(); // Should have a message
+    expect(ranked[0].score).toBeGreaterThan(80); 
+    expect(ranked[0].message).toBeTruthy(); 
   });
 
   test('prefers skiing on cold day with snow', () => {

@@ -22,35 +22,34 @@ const BASE_SCORES = {
  * Calculate activity scores based on weather conditions
  */
 export function scoreActivities(weather: Weather): ActivityRanking[] {
-  const { 
-    temperature = 0, 
-    rainRate = 0, 
-    windSpeed = 0 
-  } = weather || {};
+  // Provide safe defaults in case any value is null or undefined
+  const safeTemperature = weather.temperature ?? 0;
+  const safeRainRate = weather.rainRate ?? 0;
+  const safeWindSpeed = weather.windSpeed ?? 0;
 
   const activities: ActivityRanking[] = [
     {
-      activity: Activity.SKIING,
-      score: temperature < THRESHOLDS.COLD_TEMP_CELSIUS 
-        ? BASE_SCORES.SKIING.ideal 
+      activity: Activity.Skiing,
+      score: safeTemperature < THRESHOLDS.COLD_TEMP_CELSIUS
+        ? BASE_SCORES.SKIING.ideal
         : BASE_SCORES.SKIING.default
     },
     {
-      activity: Activity.SURFING,
-      score: windSpeed > THRESHOLDS.WINDY_SPEED_MS 
-        ? BASE_SCORES.SURFING.ideal 
+      activity: Activity.Surfing,
+      score: safeWindSpeed > THRESHOLDS.WINDY_SPEED_MS
+        ? BASE_SCORES.SURFING.ideal
         : BASE_SCORES.SURFING.default
     },
     {
-      activity: Activity.INDOOR_SIGHTSEEING,
-      score: rainRate > THRESHOLDS.RAIN_RATE_THRESHOLD 
-        ? BASE_SCORES.INDOOR.ideal 
+      activity: Activity.IndoorSightseeing,
+      score: safeRainRate > THRESHOLDS.RAIN_RATE_THRESHOLD
+        ? BASE_SCORES.INDOOR.ideal
         : BASE_SCORES.INDOOR.default
     },
     {
-      activity: Activity.OUTDOOR_SIGHTSEEING,
-      score: rainRate === THRESHOLDS.RAIN_RATE_THRESHOLD && temperature > THRESHOLDS.PLEASANT_TEMP_CELSIUS 
-        ? BASE_SCORES.OUTDOOR.ideal 
+      activity: Activity.OutdoorSightseeing,
+      score: safeRainRate === THRESHOLDS.RAIN_RATE_THRESHOLD && safeTemperature > THRESHOLDS.PLEASANT_TEMP_CELSIUS
+        ? BASE_SCORES.OUTDOOR.ideal
         : BASE_SCORES.OUTDOOR.default
     }
   ];

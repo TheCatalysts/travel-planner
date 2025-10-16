@@ -34,18 +34,19 @@ Visit `http://localhost:4000/graphql` to access the GraphQL playground.
    - `StationService`: City/station suggestions with intelligent scoring
    - `WeatherService`: Weather data retrieval with caching
    - `ActivityService`: Activity recommendations based on current conditions
+   - `metricsService`: Application perfomance reporter to monitor perfomance, triggers alerts if latency or error rates exceed threshold and can view presentable data in applications like prometheus,otel etc.
 
 3. **External API Integration**
    - OpenMeteo API client with comprehensive error handling
    - Retry mechanisms for reliability
    - Type-safe response handling
    - Efficient caching strategy
+   - Metrics  to monitor perfomance to track things like activity rankings , suggestedcities etc.
 
 4. **Utilities**
    - Generic caching system with TTL support
    - Structured logging
-   - Centralized error handling
-   - Type-safe utilities
+   - Type-safe utilities and helper functions
 
 ### Key Features
 
@@ -53,7 +54,7 @@ Visit `http://localhost:4000/graphql` to access the GraphQL playground.
    - Partial text matching with scoring
    - Relevance-based results
    - Cached responses for performance
-   - Proper error handling
+   - Error handling
 
 2. **Weather Information**
    - Multiple sensor support (temperature, wind, rain)
@@ -69,7 +70,7 @@ Visit `http://localhost:4000/graphql` to access the GraphQL playground.
 
 ## Technical Choices
 
-### TypeScript & Node.js
+### TypeScript & Express.js
 - Strong typing for improved maintainability
 - Modern JavaScript features
 - Excellent tooling support
@@ -159,8 +160,30 @@ Visit `http://localhost:4000/graphql` to access the GraphQL playground.
        longitude
      }
    }
-   ```
 
+   With Additional fields
+    query {
+      suggestCities(query: "Cape Town", limit: 5) {
+         edges {
+               node {
+                     id
+                     name
+                     stationId
+                  weather { 
+                     temperature
+                     humidity
+                     windSpeed
+                  }
+                  activities {
+                     activity
+                     score
+                     message
+                  }
+               }
+               cursor
+         }}
+   ```
+   
 2. **Get Weather Data**
    ```graphql
    query {
@@ -211,12 +234,13 @@ The API follows these principles for error handling:
    - Chose in-memory caching for simplicity and quick implementation
    - Trade-off: No distributed caching support
    - Consideration: For production, would implement Redis or similar
+   - Persist Data to the database
 
 2. **Data Models**
    - Simplified station model focusing on essential fields
    - Limited weather parameters to commonly used data
    - Room for extension in activity scoring
-   - Trade-off: Some advanced weather data not included
+   - Trade-off: Some advanced weather data not included or missing from the dataset.
 
 3. **API Design**
    - Focus on simplicity and usability
@@ -235,6 +259,11 @@ The API follows these principles for error handling:
    - Add request rate limiting
    - Add proper metrics collection
    - Implement comprehensive logging
+   - Add database for persistence
+   - Add CI/CD pipelines
+   - Containerize the application with Kubernetes + Helm Charts deployment
+   - Add UI
+   - Perform all CRUD operations
 
 2. **Feature Additions**
    - Historical weather data support
@@ -243,7 +272,6 @@ The API follows these principles for error handling:
    - Time-based recommendations
 
 3. **API Enhancements**
-   - Pagination for large result sets
    - More detailed error types
    - Subscriptions for real-time updates
    - Better input validation
@@ -254,17 +282,9 @@ The API follows these principles for error handling:
    - Add more integration tests
    - Add API contract tests
 
-## Contributing
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+## Running the application
 
-## License
-
-MIT
 
 2. Run in dev mode:
 
@@ -296,27 +316,7 @@ Notes
 
 - The server disables the Apollo landing page by default to avoid HTML responses for automated clients. Set `APOLLO_LANDING_PAGE=true` to enable it.
 - Sensor fetches may return null when external APIs fail; resolvers cache and continue to return available data.
-
-Docker
-------
-
-Build the production image:
-
-```bash
-docker build -t travel-planner:latest .
-```
-
-Run with docker-compose (development mode, mounts source and runs `npm run dev`):
-
-```bash
-docker-compose up --build
-```
-
-Run production container:
-
-```bash
-docker run -p 4000:4000 travel-planner:latest
-```
+- Use npm run codegen whenever the schema or queries change to keep TypeScript types up to date.
 
 Architecture & Design
 ---------------------
@@ -346,7 +346,7 @@ Omissions & Trade-offs
 How AI was used
 ---------------
 
-- AI (ChatGPT/Copilot) was used to accelerate boilerplate edits and suggest patterns for error handling, schema design, and tests. All outputs were reviewed and adjusted manually to fit the project conventions and constraints.
+- AI (ChatGPT/Copilot) was used to accelerate psuedocode and suggest patterns for error handling, schema design. All outputs were reviewed and adjusted manually to fit the project conventions and constraints.
 
 How I'd improve with more time
 -----------------------------
@@ -369,11 +369,4 @@ APOLLO_LANDING_PAGE=true npm run dev
 
 2. Open `http://localhost:4000/graphql` in your browser. The Apollo Sandbox will load.
 
-3. Run the following mutation to execute a small suite of server-side integration checks (suggest, weather, ranking):
-
-```graphql
-mutation { runIntegrationChecks { name ok message data } }
-```
-
-The response will be a JSON array with results for each check and any returned data, useful for quick verification from the UI.
 

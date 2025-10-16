@@ -4,8 +4,7 @@ import { WeatherErrorCode } from '../../src/types/graphql';
 import { metricsService } from '../../src/services/metricsService';
 import { SUGGEST_CITIES_QUERY ,SUGGEST_CITIES_CURSOR_QUERY, SUGGEST_CITIES_EMPTY_QUERY } from './queries/suggestCitiesQueries';
 import { RANK_ACTIVITIES_QUERY } from './queries/rankActivitiesQuery';
-import type { StationResponse, ActivityResponse, WeatherErrorResponse, WeatherDataResponse } 
-  from './__types__/graphqlResponses';
+import type { StationResponse, ActivityResponse, WeatherErrorResponse, WeatherDataResponse } from './__types__/graphqlResponses';
 import fs from 'fs';
 import path from 'path';
 import { IResolvers } from '@graphql-tools/utils';

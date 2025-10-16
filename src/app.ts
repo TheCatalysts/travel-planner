@@ -120,7 +120,6 @@ export async function startServer(port = 4000) {
   await server.start();
   app.use('/graphql', express.json(), await makeHandler());
 
-  // Error handling middleware should come after routes
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     logger.error({ err, path: req.path }, 'Unhandled error in request');
     res

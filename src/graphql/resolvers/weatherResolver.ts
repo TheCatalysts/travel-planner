@@ -2,12 +2,13 @@ import { stationService } from '../../services/stationService';
 import { getWeather } from '../../services/weatherService';
 import { rankActivities } from '../../services/activityService';
 import { JSONScalar } from '../scalars/json';
-import type { Resolvers } from '../../types/resolvers';
+import type { QuerySuggestCitiesArgs, Resolvers } from '../../types/resolvers';
 import { logger } from '../../utils/logger';
 import { metricsService } from '../../services/metricsService';
-import { Weather, WeatherError, WeatherErrorCode, Activity } from '../../types/graphql';
+import { Weather, WeatherError, WeatherErrorCode, Activity, ActivityScore, Station as StationType,} from '../../types/graphql';
 import { getActivityMessage } from '../../utils/activityMessages';
 import { withMetrics } from '../../utils/withMetrics';
+import type { RequireFields } from '../../types/resolvers'; 
 
 const BASE_64_PREFIX = 'cursor:';
 
@@ -33,9 +34,17 @@ const resolvers: Resolvers = {
   JSON: JSONScalar,
 
   WeatherResult: {
-    __resolveType(obj: Weather | WeatherError) {
+    __resolveType(obj: Record<string, any>) {
       if ('temperature' in obj) return 'Weather';
       if ('code' in obj) return 'WeatherError';
+      return null;
+    },
+  },
+
+  CityInfoResult: {
+    __resolveType(obj: Record<string, any>) {
+      if (obj && typeof obj === 'object' && 'weather' in obj && 'activities' in obj) return 'CityInfo';
+      if (obj && typeof obj === 'object' && 'code' in obj) return 'CityError';
       return null;
     },
   },
@@ -43,16 +52,20 @@ const resolvers: Resolvers = {
   Query: {
     suggestCities: withMetrics(
       metricsService.recordStationLatency.bind(metricsService),
-      async (_: unknown, { query, limit = 8, after }: { query: string; limit?: number; after?: string }) => {
+      async (_: unknown, args: RequireFields<QuerySuggestCitiesArgs, 'limit' | 'query'>) => {
+        const { query, limit = 8, after } = args;
         const validLimit = Math.min(Math.max(1, limit), 50);
-        const offset = decodeCursor(after);
+        const offset = decodeCursor(after ?? undefined);
 
         const results = await stationService.suggest(query, validLimit + 1, offset);
         const hasNextPage = results.length > validLimit;
         const stations = results.slice(0, validLimit);
 
         const edges = stations.map((station, index) => ({
-          node: station,
+          node: {
+            ...station,
+            activities: [], 
+          },
           cursor: encodeCursor(offset + index + 1),
         }));
 
@@ -71,48 +84,41 @@ const resolvers: Resolvers = {
 
     getWeather: withMetrics(
       metricsService.recordWeatherLatency.bind(metricsService),
-      async (_: unknown, { stationId }: { stationId: string }) => {
+      async (_: unknown, { stationId }: { stationId: string }): Promise<Weather | WeatherError> => {
         try {
           const weather = await getWeather(stationId);
 
-          if (
-            !weather ||
-            ('code' in (weather as any) &&
-              (weather as any).code === WeatherErrorCode.STATION_NOT_FOUND)
-          ) {
+          if (!weather || ('code' in (weather as any) && (weather as any).code === WeatherErrorCode.StationNotFound)) {
             return {
-              code: WeatherErrorCode.STATION_NOT_FOUND,
+              code: WeatherErrorCode.StationNotFound,
               message: `No weather data found for station ${stationId}`,
-            };
+            } as WeatherError;
           }
 
-          return { ...weather, lastUpdated: new Date().toISOString() } as Weather;
+          return { ...(weather as Weather), lastUpdated: new Date().toISOString() } as Weather;
         } catch (error) {
           logger.error({ error, stationId }, 'Error fetching weather data');
           return {
-            code: WeatherErrorCode.INTERNAL_ERROR,
+            code: WeatherErrorCode.InternalError,
             message: 'An internal error occurred while fetching weather data',
-          };
+          } as WeatherError;
         }
       }
     ),
 
     rankActivities: withMetrics(
       metricsService.recordActivityLatency.bind(metricsService),
-      async (_: unknown, { stationId }: { stationId: string }) => {
+      async (_: unknown, { stationId }: { stationId: string }): Promise<ActivityScore[]> => {
         const result = await getWeather(stationId);
 
         if (!result || 'code' in (result as any)) {
-          logger.warn(
-            { stationId, error: result },
-            'Could not get weather data for activity ranking'
-          );
+          logger.warn({ stationId, error: result }, 'Could not get weather data for activity ranking');
           return [
             {
-              activity: Activity.INDOOR_SIGHTSEEING,
+              activity: Activity.IndoorSightseeing,
               score: 40,
               message: 'Indoor activities recommended due to weather data unavailability',
-            },
+            } as ActivityScore,
           ];
         }
 
@@ -121,12 +127,61 @@ const resolvers: Resolvers = {
         return rankings.map(r => {
           const score = typeof r.score === 'number' ? r.score : Number(r.score || 0);
           return {
-            ...r,
-            message: r.message ?? getActivityMessage(r.activity, score),
-          };
+            activity: r.activity as Activity,
+            score,
+            message: r.message ?? getActivityMessage(r.activity as Activity, score),
+          } as ActivityScore;
         });
       }
     ),
+  },
+
+  // Lazy field resolvers for Station to get weather/activities per-station
+  Station: {
+    async weather(parent: StationType): Promise<Weather | null> {
+      try {
+        const data = await getWeather(parent.stationId);
+        if (!data || 'code' in (data as any)) return null;
+        return { ...(data as Weather), lastUpdated: new Date().toISOString() } as Weather;
+      } catch (err) {
+        logger.warn({ err, stationId: parent.stationId }, 'Error fetching station weather');
+        return null;
+      }
+    },
+
+    async activities(parent: StationType): Promise<ActivityScore[]> {
+      try {
+        const data = await getWeather(parent.stationId);
+        if (!data || 'code' in (data as any)) {
+          return [
+            {
+              activity: Activity.IndoorSightseeing,
+              score: 40,
+              message: 'Indoor activities recommended due to weather data unavailability',
+            } as ActivityScore,
+          ];
+        }
+
+        const ranked = rankActivities(data as Weather);
+        return ranked.map(r => {
+          const score = typeof r.score === 'number' ? r.score : Number(r.score || 0);
+          return {
+            activity: r.activity as Activity,
+            score,
+            message: r.message ?? getActivityMessage(r.activity as Activity, score),
+          } as ActivityScore;
+        });
+      } catch (err) {
+        logger.warn({ err, stationId: parent.stationId }, 'Error fetching activities for station');
+        return [
+          {
+            activity: Activity.IndoorSightseeing,
+            score: 40,
+            message: 'Indoor activities recommended due to weather data unavailability',
+          } as ActivityScore,
+        ];
+      }
+    },
   },
 
   Mutation: {},

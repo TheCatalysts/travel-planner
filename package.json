@@ -5,10 +5,10 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "build": "tsc -p .",
-    "start": "node dist/server.js",
+    "start": "node dist/app.js",
     "test": "jest --runInBand --detectOpenHandles --forceExit",
     "integration": "npx ts-node scripts/integrationTest.ts",
-    "devStart": "nodemon server.js",
+    "devStart": "nodemon app.js",
     "codegen": "graphql-codegen --config codegen.ts"
   },
   "keywords": [],
