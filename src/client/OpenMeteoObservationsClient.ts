@@ -1,4 +1,3 @@
-
 import 'dotenv/config';
 import { logger } from "../utils/logger";
 import type { StationDetails } from "../types/station";
