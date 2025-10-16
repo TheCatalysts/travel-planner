@@ -174,7 +174,8 @@ Visit `http://localhost:4000/graphql` to access the GraphQL playground.
    }
    ```
    1.1. **Search With Additional fields**
-    query {
+   ```graphql
+   query {
       suggestCities(query: "Cape Town", limit: 5) {
          edges {
                node {
@@ -193,7 +194,9 @@ Visit `http://localhost:4000/graphql` to access the GraphQL playground.
                   }
                }
                cursor
-         }}
+         }
+      }
+   }
    ```
    
 2. **Get Weather Data**
