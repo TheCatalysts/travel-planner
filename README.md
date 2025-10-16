@@ -158,16 +158,22 @@ Visit `http://localhost:4000/graphql` to access the GraphQL playground.
 1. **Search for Cities**
    ```graphql
    query {
-     suggestCities(query: "Leip", limit: 5) {
-       name
-       country
-       stationId
-       latitude
-       longitude
-     }
+      suggestCities(query: "Cape") {
+         edges {
+            node {
+            name
+            country
+            }
+            cursor
+         }
+         pageInfo {
+            hasNextPage
+            endCursor
+         }
+      }
    }
-
-   With Additional fields
+   ```
+   1.1. **Search With Additional fields**
     query {
       suggestCities(query: "Cape Town", limit: 5) {
          edges {
@@ -193,23 +199,28 @@ Visit `http://localhost:4000/graphql` to access the GraphQL playground.
 2. **Get Weather Data**
    ```graphql
    query {
-     getWeather(stationId: "1001") {
-       name
-       temperature
-       humidity
-       windSpeed
-       windDirection
-       rainRate
-     }
+      getWeather(stationId: "1001") {
+         ... on Weather {
+            temperature
+            humidity
+            windSpeed
+         }
+         ... on WeatherError {
+            code
+            message
+         }
+      }
    }
+
    ```
 
 3. **Get Activity Rankings**
    ```graphql
    query {
-     rankActivities(stationId: "1001") {
+     rankActivities(stationId: "1002") {
        activity
        score
+       message
      }
    }
    ```
