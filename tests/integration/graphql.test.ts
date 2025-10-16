@@ -47,7 +47,7 @@ describe('Weather Query', () => {
 
     if (response.body.kind === 'single' && response.body.singleResult.data) {
       const data = response.body.singleResult.data as unknown as WeatherErrorResponse;
-      expect(data.getWeather.code).toBe(WeatherErrorCode.STATION_NOT_FOUND);
+      expect(data.getWeather.code).toBe(WeatherErrorCode.StationNotFound);
       expect(data.getWeather.message).toContain('invalid-id');
     }
   });

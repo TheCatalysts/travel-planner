@@ -82,7 +82,7 @@ describe('getWeather', () => {
     mockedClient.getStation.mockRejectedValue(new Error('Network error'));
     const result = await getWeather('1004');
     expect(result).toEqual({
-      code: WeatherErrorCode.STATION_NOT_FOUND,
+      code: WeatherErrorCode.StationNotFound,
       message: expect.stringContaining('1004')
     });
     expect(mockedClient.getStation).toHaveBeenCalledWith('1004');
@@ -185,7 +185,7 @@ describe('getWeather', () => {
     const result = await getWeather('1004');
 
     expect(result).toEqual({
-      code: WeatherErrorCode.DATA_UNAVAILABLE,
+      code: WeatherErrorCode.DataUnavailable,
       message: expect.stringContaining('1004')
     });
     
@@ -197,7 +197,7 @@ describe('getWeather', () => {
     mockedClient.getStation.mockRejectedValueOnce(new Error('Network error'));
     const result1 = await getWeather('1004');
     expect(result1).toEqual({
-      code: WeatherErrorCode.STATION_NOT_FOUND,
+      code: WeatherErrorCode.StationNotFound,
       message: expect.stringContaining('1004')
     });
 

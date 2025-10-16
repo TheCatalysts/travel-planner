@@ -18,7 +18,7 @@ describe('rankActivities', () => {
       cloudCover: 10
     };
     const ranked = rankActivities(weather);
-    expect(ranked[0].activity).toBe(Activity.OUTDOOR_SIGHTSEEING);
+    expect(ranked[0].activity).toBe(Activity.OutdoorSightseeing);
     expect(ranked[0].score).toBeGreaterThan(80); // Good conditions should score high
     expect(ranked[0].message).toBeTruthy(); // Should have a message
   });
@@ -34,7 +34,7 @@ describe('rankActivities', () => {
       cloudCover: 60
     };
     const ranked = rankActivities(weather);
-    expect(ranked[0].activity).toBe(Activity.SKIING);
+    expect(ranked[0].activity).toBe(Activity.Skiing);
     expect(ranked[0].score).toBeGreaterThan(70); 
     expect(ranked[0].message).toBeTruthy();
   });
@@ -50,7 +50,7 @@ describe('rankActivities', () => {
       cloudCover: 100
     };
     const ranked = rankActivities(weather);
-    expect(ranked[0].activity).toBe(Activity.INDOOR_SIGHTSEEING);
+    expect(ranked[0].activity).toBe(Activity.IndoorSightseeing);
     expect(ranked[0].score).toBeGreaterThan(60);
     expect(ranked[0].message).toBeTruthy();
   });
