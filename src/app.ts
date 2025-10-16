@@ -1,7 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { ApolloServer } from '@apollo/server';
-import { ApolloServerPluginLandingPageLocalDefault } 
-  from '@apollo/server/plugin/landingPage/default';
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import resolvers from './graphql/resolvers/weatherResolver';
 import { readFileSync } from 'fs';
 import path from 'path';
@@ -130,7 +129,7 @@ export async function startServer(port = 4000) {
   });
 
   await new Promise<void>((resolve) => {
-    httpServer = app.listen(port, () => {
+    httpServer = app.listen(port, '0.0.0.0' ,() => {
       console.log(`🚀 Server ready at http://localhost:${port}/graphql`);
       resolve();
     });
